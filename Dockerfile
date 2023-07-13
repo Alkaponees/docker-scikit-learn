@@ -1,26 +1,14 @@
-FROM smizy/python:3.8.2-alpine
+FROM python:3.8.2
 
 ARG BUILD_DATE
 ARG VCS_REF
 ARG VERSION
 
-LABEL \
-    maintainer="smizy" \
-    org.label-schema.build-date=$BUILD_DATE \
-    org.label-schema.docker.dockerfile="/Dockerfile" \
-    org.label-schema.license="Apache License 2.0" \
-    org.label-schema.name="smizy/scikit-learn" \
-    org.label-schema.url="https://github.com/smizy" \
-    org.label-schema.vcs-ref=$VCS_REF \
-    org.label-schema.vcs-type="Git" \
-    org.label-schema.version=$VERSION \
-    org.label-schema.vcs-url="https://github.com/smizy/docker-scikit-learn"
-
 ENV SCIKIT_LEARN_VERSION  $VERSION
 
 RUN set -x \
-    && apk update \
-    && apk --no-cache add \
+    && apt update \
+    && apt install -y \
         fontconfig \
         freetype \
         openblas \
@@ -52,7 +40,7 @@ RUN set -x \
     && pip3 install jupyter-console \
     ## numpy 
     && ln -s /usr/include/locale.h /usr/include/xlocale.h \
-    && apk --no-cache add --virtual .builddeps \
+    && apt install -y .builddeps \
         build-base \
         freetype-dev \
         gfortran \
@@ -61,7 +49,7 @@ RUN set -x \
         python3-dev \
         wget \
     ## dependency for pandas 
-    && apk --no-cache add  \
+    && apt install -y \
         py3-tz \
     ## pandas
     # - BUG: error: may be used uninitialized. In alpine #35622
@@ -80,7 +68,7 @@ RUN set -x \
     && pip3 install --no-use-pep517 scikit-learn==${SCIKIT_LEARN_VERSION} \
     ## seaborn/matplotlib
     ## dependency for seaborn(use alpine-package to avoid compile error) 
-    && apk --no-cache add  \
+    && apt install -y \
         py3-pillow \
     && pip3 install seaborn \
     ## excel read/write 
@@ -99,7 +87,7 @@ RUN set -x \
     && addgroup jupyter docker \
     && chown -R jupyter:jupyter /home/jupyter \ 
     ## clean
-    && apk del \
+    && apt remove \
         .builddeps \
     && find /usr/lib/python3.8 -name __pycache__ | xargs rm -r \
     && rm -rf \
